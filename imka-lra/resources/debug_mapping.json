@@ -1,0 +1,32 @@
+{
+    "linear": {
+        "type": "Linear",
+        "weight": "linear.weight",
+        "bias": "linear.bias",
+        "tiles_map": {
+            "0": {
+                "0": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            200
+                        ],
+                        "tile_row_region": [
+                            0,
+                            200
+                        ],
+                        "weight_col_region": [
+                            0,
+                            200
+                        ],
+                        "weight_row_region": [
+                            0,
+                            200
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    }
+}

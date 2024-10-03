@@ -1,0 +1,29 @@
+# MacOS related files
+*.DS_Store
+*.icloud
+
+# Python files
+**__pycache__**
+**.pyc
+*.out
+*.vscode
+*.py[cod]
+*$py.class
+.ruff_cache
+*.log
+.pytest_cache
+results
+performer.egg-info
+
+# Jupyter notebooks
+*.ipynb_checkpoints
+
+# Credentials
+**/.config
+**/experiments/analyze_weights
+
+# board specific configs
+resources/hermes_config
+resources/debug
+
+**.code-workspace

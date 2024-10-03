@@ -1,0 +1,11 @@
+# Liu et al. 2021 replication experiments config file.
+
+# dataset settings
+dataset: 'ijcnn1'
+dpath: 'data'
+norm: True
+
+# experiments settings
+hidden_features : [1, 2, 3, 4, 5]
+rf : ['rff', 'orf', 'sorf']
+seeds : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

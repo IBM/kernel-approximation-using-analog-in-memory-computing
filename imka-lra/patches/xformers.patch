@@ -1,0 +1,1892 @@
+diff --git a/.github/ISSUE_TEMPLATE/bug-report.md b/.github/ISSUE_TEMPLATE/bug-report.md
+deleted file mode 100644
+index c22e4b5..0000000
+--- a/.github/ISSUE_TEMPLATE/bug-report.md
++++ /dev/null
+@@ -1,53 +0,0 @@
+----
+-name: "\U0001F41B Bug Report"
+-about: Submit a bug report to help us improve xFormers
+-
+----
+-
+-# 🐛 Bug
+-
+-<!-- A clear and concise description of what the bug is. -->
+-
+-## Command
+-
+-## To Reproduce
+-
+-Steps to reproduce the behavior:
+-
+-<!-- If you were running a command, post the exact command that you were running -->
+-
+-1.
+-2.
+-3.
+-
+-<!-- If you have a code sample, error messages, stack traces, please provide it here as well -->
+-
+-## Expected behavior
+-
+-<!-- A clear and concise description of what you expected to happen. -->
+-
+-## Environment
+-
+-Please copy and paste the output from the
+-environment collection script from PyTorch
+-(or fill out the checklist below manually).
+-
+-You can run the script with:
+-
+-```bash
+-# For security purposes, please check the contents of collect_env.py before running it.
+-python -m torch.utils.collect_env
+-```
+-
+-- PyTorch Version (e.g., 1.0):
+-- OS (e.g., Linux):
+-- How you installed PyTorch (`conda`, `pip`, source):
+-- Build command you used (if compiling from source):
+-- Python version:
+-- CUDA/cuDNN version:
+-- GPU models and configuration:
+-- Any other relevant information:
+-
+-## Additional context
+-
+-<!-- Add any other context about the problem here. -->
+diff --git a/.github/ISSUE_TEMPLATE/feature-request.md b/.github/ISSUE_TEMPLATE/feature-request.md
+deleted file mode 100644
+index f82e298..0000000
+--- a/.github/ISSUE_TEMPLATE/feature-request.md
++++ /dev/null
+@@ -1,25 +0,0 @@
+----
+-name: "\U0001F680Feature Request"
+-about: Submit a proposal/request for a new xFormers feature
+-
+----
+-
+-# 🚀 Feature
+-
+-<!-- A clear and concise description of the feature proposal -->
+-
+-## Motivation
+-
+-<!-- Please outline the motivation for the proposal. Is your feature request related to a problem? e.g., I'm always frustrated when [...]. If this is related to another GitHub issue, please link here too -->
+-
+-## Pitch
+-
+-<!-- A clear and concise description of what you want to happen. -->
+-
+-## Alternatives
+-
+-<!-- A clear and concise description of any alternative solutions or features you've considered, if any. -->
+-
+-## Additional context
+-
+-<!-- Add any other context or screenshots about the feature request here. -->
+diff --git a/.github/ISSUE_TEMPLATE/questions-help-support.md b/.github/ISSUE_TEMPLATE/questions-help-support.md
+deleted file mode 100644
+index b2bec9d..0000000
+--- a/.github/ISSUE_TEMPLATE/questions-help-support.md
++++ /dev/null
+@@ -1,7 +0,0 @@
+----
+-name: "❓Questions/Help/Support"
+-about: Do you need support?
+-
+----
+-
+-# ❓ Questions and Help
+diff --git a/.github/PULL_REQUEST_TEMPLATE.md b/.github/PULL_REQUEST_TEMPLATE.md
+deleted file mode 100644
+index 78e5ef2..0000000
+--- a/.github/PULL_REQUEST_TEMPLATE.md
++++ /dev/null
+@@ -1,21 +0,0 @@
+-## What does this PR do?
+-Fixes # (issue).
+-
+-## Before submitting
+-
+-- [ ] Did you have fun?
+-  - Make sure you had fun coding 🙃
+-- [ ] Did you read the [contributor guideline](https://github.com/facebookresearch/xformers/blob/master/CONTRIBUTING.md)?
+-- [ ] Was this discussed/approved via a Github issue? (no need for typos, doc improvements)
+-  - [ ] N/A
+-- [ ] Did you make sure to update the docs?
+-  - [ ] N/A
+-- [ ] Did you write any new necessary tests?
+-  - [ ] N/A
+-- [ ] Did you update the [changelog](https://github.com/facebookresearch/xformers/blob/master/CHANGELOG.md)? (if needed)
+-  - [ ] N/A
+-
+-
+-## PR review
+-Anyone in the community is free to review the PR once the tests have passed.
+-If we didn't discuss your PR in Github issues there's a high chance it will not be merged.
+diff --git a/.github/actions/setup-env-build/action.yml b/.github/actions/setup-env-build/action.yml
+deleted file mode 100644
+index a4669ad..0000000
+--- a/.github/actions/setup-env-build/action.yml
++++ /dev/null
+@@ -1,50 +0,0 @@
+-name: Install env + build
+-
+-runs:
+-  using: composite
+-  steps:
+-    - name: Conda setup
+-      shell: bash
+-      run: |
+-        conda config --set channel_priority strict
+-        CONDA_INSTALL_CMD="conda create -p ./c_env python=${{ matrix.python }} zlib pip ninja pytorch=${{ matrix.pytorch }} torchvision ccache pytorch-cuda=${{ matrix.cuda }} -c pytorch -c nvidia -q -y"
+-        # Retry if failed after removing downloaded packages cache
+-        $CONDA_INSTALL_CMD || (rm -rf $HOME/.conda/pkgs && rm -rf ./c_env && $CONDA_INSTALL_CMD)
+-        ./c_env/bin/python -m pip install cmake
+-        export LIBRARY_PATH="$LIBRARY_PATH:$(pwd)/c_env/lib"
+-        # TODO: Remove any triton requirement for now as the setup
+-        # breaks in CI
+-        sed -i '/triton/d' requirements-test.txt
+-        echo "XFORMERS_FORCE_DISABLE_TRITON=1" >> ${GITHUB_ENV}
+-        ./c_env/bin/python -m pip install -r requirements-benchmark.txt --progress-bar off
+-    - name: Setup ccache
+-      shell: bash
+-      run: |
+-        source activate ./c_env
+-        echo "#!/bin/bash" > ./c_env/bin/nvcc-ccache
+-        echo "ccache ${CUDA_HOME}/bin/nvcc \"\$@\"" >> ./c_env/bin/nvcc-ccache
+-        cat ./c_env/bin/nvcc-ccache
+-        chmod +x ./c_env/bin/nvcc-ccache
+-        which nvcc
+-        echo "CCACHE_DIR=$HOME/.ccache" >> ${GITHUB_ENV}
+-    - name: ccache stats
+-      shell: bash
+-      run: |
+-        source activate ./c_env
+-        ccache -s
+-    - name: Build
+-      shell: bash
+-      run: |
+-        source activate ./c_env
+-        PYTORCH_NVCC="$(pwd)/c_env/bin/nvcc-ccache" TORCH_CUDA_ARCH_LIST=${{ matrix.gpu.sm }} python -m pip install -v -e .
+-        python -m xformers.info
+-    - name: xformers.info
+-      shell: bash
+-      run: |
+-        source activate ./c_env
+-        python -m xformers.info
+-    - name: ccache stats
+-      shell: bash
+-      run: |
+-        source activate ./c_env
+-        ccache -s
+diff --git a/.github/actions/setup-windows-runner/action.yml b/.github/actions/setup-windows-runner/action.yml
+deleted file mode 100644
+index e932532..0000000
+--- a/.github/actions/setup-windows-runner/action.yml
++++ /dev/null
+@@ -1,40 +0,0 @@
+-name: Set up Windows Runner
+-
+-inputs:
+-  cuda:
+-    description: Cuda version to install
+-    type: string
+-    default: "11.7.1"
+-  python:
+-    description: Python version to install
+-    type: string
+-    default: "3.10"
+-
+-runs:
+-  using: composite
+-  steps:
+-    - name: Install cuda
+-      uses: okazunori2013/cuda-toolkit@v0.3.3
+-      with:
+-        cuda: ${{ inputs.cuda }}
+-        method: network
+-
+-    - name: Install python
+-      uses: actions/setup-python@v4
+-      with:
+-        python-version: ${{ inputs.python }}
+-
+-    - name: Setup MSVC
+-      uses: ilammy/msvc-dev-cmd@v1
+-
+-    - name: Configure Pagefile
+-      # windows runners will OOM with many CUDA architectures
+-      # we cheat here with a page file
+-      uses: al-cheb/configure-pagefile-action@v1.3
+-      with:
+-        minimum-size: 8GB
+-
+-    # really unfortunate: https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash
+-    - name: Remove link.exe
+-      shell: bash
+-      run: rm /usr/bin/link
+diff --git a/.github/gpu_benchmark_diff.py b/.github/gpu_benchmark_diff.py
+deleted file mode 100644
+index e72b965..0000000
+--- a/.github/gpu_benchmark_diff.py
++++ /dev/null
+@@ -1,59 +0,0 @@
+-# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+-#
+-# This source code is licensed under the BSD license found in the
+-# LICENSE file in the root directory of this source tree.
+-
+-import glob
+-import os
+-import subprocess
+-
+-import xformers.benchmarks.utils as utils
+-
+-
+-class NamedObject:
+-    def __init__(self, name) -> None:
+-        self.__name__ = name
+-
+-
+-def git_file_at(filename: str, ref: str) -> str:
+-    try:
+-        return subprocess.check_output(
+-            ["git", "show", f"{ref}:{filename}"], text=True
+-        ).strip()
+-    except subprocess.CalledProcessError:
+-        return ""  # File does not exist in that revision
+-
+-
+-GITHUB_BASE_REF = subprocess.check_output(
+-    ["git", "rev-parse", "origin/" + os.environ["GITHUB_BASE_REF"]], text=True
+-).strip()
+-XFORMERS_BENCHMARKS_CACHE = os.environ["XFORMERS_BENCHMARKS_CACHE"]
+-GITHUB_CURRENT_REF = subprocess.check_output(
+-    ["git", "rev-parse", "HEAD"], text=True
+-).strip()
+-
+-for f in glob.glob(os.path.join(XFORMERS_BENCHMARKS_CACHE, "*", "*.csv")):
+-    before = git_file_at(f, ref=GITHUB_BASE_REF)
+-    now = git_file_at(f, ref=GITHUB_CURRENT_REF)
+-    if before == "" or before == now:
+-        continue
+-    benchmark_name = os.path.basename(os.path.dirname(f))
+-
+-    print("#" * 100)
+-    print(f"# UPDATED: {f}")
+-    print("#" * 100)
+-
+-    filename_before = f.replace("reference", "before")
+-    filename_now = f.replace("reference", "now")
+-    with open(filename_before, "w+") as fd:
+-        fd.write(before)
+-    with open(filename_now, "w+") as fd:
+-        fd.write(now)
+-    utils.benchmark_run_and_compare(
+-        benchmark_fn=NamedObject(benchmark_name),
+-        cases=[],
+-        compare=[
+-            os.path.basename(filename_before)[: -len(".csv")],
+-            os.path.basename(filename_now)[: -len(".csv")],
+-        ],
+-    )
+diff --git a/.github/run-clang-format.py b/.github/run-clang-format.py
+deleted file mode 100755
+index f8be8a5..0000000
+--- a/.github/run-clang-format.py
++++ /dev/null
+@@ -1,353 +0,0 @@
+-#!/usr/bin/env python
+-"""
+-MIT License
+-Copyright (c) 2017 Guillaume Papin
+-Permission is hereby granted, free of charge, to any person obtaining a copy
+-of this software and associated documentation files (the "Software"), to deal
+-in the Software without restriction, including without limitation the rights
+-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-copies of the Software, and to permit persons to whom the Software is
+-furnished to do so, subject to the following conditions:
+-The above copyright notice and this permission notice shall be included in all
+-copies or substantial portions of the Software.
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-SOFTWARE.
+-"""
+-"""A wrapper script around clang-format, suitable for linting multiple files
+-and to use for continuous integration.
+-This is an alternative API for the clang-format command line.
+-It runs over multiple files and directories in parallel.
+-A diff output is produced and a sensible exit code is returned.
+-"""
+-
+-import argparse  # noqa: E402
+-import difflib  # noqa: E402
+-import fnmatch  # noqa: E402
+-import io  # noqa: E402
+-import multiprocessing  # noqa: E402
+-import os  # noqa: E402
+-import signal  # noqa: E402
+-import subprocess  # noqa: E402
+-import sys  # noqa: E402
+-import traceback  # noqa: E402
+-from functools import partial  # noqa: E402
+-from subprocess import DEVNULL  # noqa: E402
+-
+-DEFAULT_EXTENSIONS = "c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx,cu"
+-
+-
+-class ExitStatus:
+-    SUCCESS = 0
+-    DIFF = 1
+-    TROUBLE = 2
+-
+-
+-def list_files(files, recursive=False, extensions=None, exclude=None):
+-    if extensions is None:
+-        extensions = []
+-    if exclude is None:
+-        exclude = []
+-
+-    out = []
+-    for file in files:
+-        if recursive and os.path.isdir(file):
+-            for dirpath, dnames, fnames in os.walk(file):
+-                fpaths = [os.path.join(dirpath, fname) for fname in fnames]
+-                for pattern in exclude:
+-                    # os.walk() supports trimming down the dnames list
+-                    # by modifying it in-place,
+-                    # to avoid unnecessary directory listings.
+-                    dnames[:] = [
+-                        x
+-                        for x in dnames
+-                        if not fnmatch.fnmatch(os.path.join(dirpath, x), pattern)
+-                    ]
+-                    fpaths = [x for x in fpaths if not fnmatch.fnmatch(x, pattern)]
+-                for f in fpaths:
+-                    ext = os.path.splitext(f)[1][1:]
+-                    if ext in extensions:
+-                        out.append(f)
+-        else:
+-            out.append(file)
+-    return out
+-
+-
+-def make_diff(file, original, reformatted):
+-    return list(
+-        difflib.unified_diff(
+-            original,
+-            reformatted,
+-            fromfile="a/{}\t(original)".format(file),
+-            tofile="b/{}\t(reformatted)".format(file),
+-            n=3,
+-        )
+-    )
+-
+-
+-class DiffError(Exception):
+-    def __init__(self, message, errs=None):
+-        super(DiffError, self).__init__(message)
+-        self.errs = errs or []
+-
+-
+-class UnexpectedError(Exception):
+-    def __init__(self, message, exc=None):
+-        super(UnexpectedError, self).__init__(message)
+-        self.formatted_traceback = traceback.format_exc()
+-        self.exc = exc
+-
+-
+-def run_clang_format_diff_wrapper(args, file):
+-    try:
+-        ret = run_clang_format_diff(args, file)
+-        return ret
+-    except DiffError:
+-        raise
+-    except Exception as e:
+-        raise UnexpectedError("{}: {}: {}".format(file, e.__class__.__name__, e), e)
+-
+-
+-def run_clang_format_diff(args, file):
+-    try:
+-        with io.open(file, "r", encoding="utf-8") as f:
+-            original = f.readlines()
+-    except IOError as exc:
+-        raise DiffError(str(exc))
+-    invocation = [args.clang_format_executable, file]
+-
+-    # Use of utf-8 to decode the process output.
+-    #
+-    # Hopefully, this is the correct thing to do.
+-    #
+-    # It's done due to the following assumptions (which may be incorrect):
+-    # - clang-format will returns the bytes read from the files as-is,
+-    #   without conversion, and it is already assumed that the files use utf-8.
+-    # - if the diagnostics were internationalized, they would use utf-8:
+-    #   > Adding Translations to Clang
+-    #   >
+-    #   > Not possible yet!
+-    #   > Diagnostic strings should be written in UTF-8,
+-    #   > the client can translate to the relevant code page if needed.
+-    #   > Each translation completely replaces the format string
+-    #   > for the diagnostic.
+-    #   > -- http://clang.llvm.org/docs/InternalsManual.html#internals-diag-translation
+-
+-    try:
+-        proc = subprocess.Popen(
+-            invocation,
+-            stdout=subprocess.PIPE,
+-            stderr=subprocess.PIPE,
+-            universal_newlines=True,
+-            encoding="utf-8",
+-        )
+-    except OSError as exc:
+-        raise DiffError(
+-            "Command '{}' failed to start: {}".format(
+-                subprocess.list2cmdline(invocation), exc
+-            )
+-        )
+-    proc_stdout = proc.stdout
+-    proc_stderr = proc.stderr
+-
+-    # hopefully the stderr pipe won't get full and block the process
+-    outs = list(proc_stdout.readlines())
+-    errs = list(proc_stderr.readlines())
+-    proc.wait()
+-    if proc.returncode:
+-        raise DiffError(
+-            "Command '{}' returned non-zero exit status {}".format(
+-                subprocess.list2cmdline(invocation), proc.returncode
+-            ),
+-            errs,
+-        )
+-    return make_diff(file, original, outs), errs
+-
+-
+-def bold_red(s):
+-    return "\x1b[1m\x1b[31m" + s + "\x1b[0m"
+-
+-
+-def colorize(diff_lines):
+-    def bold(s):
+-        return "\x1b[1m" + s + "\x1b[0m"
+-
+-    def cyan(s):
+-        return "\x1b[36m" + s + "\x1b[0m"
+-
+-    def green(s):
+-        return "\x1b[32m" + s + "\x1b[0m"
+-
+-    def red(s):
+-        return "\x1b[31m" + s + "\x1b[0m"
+-
+-    for line in diff_lines:
+-        if line[:4] in ["--- ", "+++ "]:
+-            yield bold(line)
+-        elif line.startswith("@@ "):
+-            yield cyan(line)
+-        elif line.startswith("+"):
+-            yield green(line)
+-        elif line.startswith("-"):
+-            yield red(line)
+-        else:
+-            yield line
+-
+-
+-def print_diff(diff_lines, use_color):
+-    if use_color:
+-        diff_lines = colorize(diff_lines)
+-    sys.stdout.writelines(diff_lines)
+-
+-
+-def print_trouble(prog, message, use_colors):
+-    error_text = "error:"
+-    if use_colors:
+-        error_text = bold_red(error_text)
+-    print("{}: {} {}".format(prog, error_text, message), file=sys.stderr)
+-
+-
+-def main():
+-    parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument(
+-        "--clang-format-executable",
+-        metavar="EXECUTABLE",
+-        help="path to the clang-format executable",
+-        default="clang-format",
+-    )
+-    parser.add_argument(
+-        "--extensions",
+-        help="comma separated list of file extensions (default: {})".format(
+-            DEFAULT_EXTENSIONS
+-        ),
+-        default=DEFAULT_EXTENSIONS,
+-    )
+-    parser.add_argument(
+-        "-r",
+-        "--recursive",
+-        action="store_true",
+-        help="run recursively over directories",
+-    )
+-    parser.add_argument("files", metavar="file", nargs="+")
+-    parser.add_argument("-q", "--quiet", action="store_true")
+-    parser.add_argument(
+-        "-j",
+-        metavar="N",
+-        type=int,
+-        default=0,
+-        help="run N clang-format jobs in parallel" " (default number of cpus + 1)",
+-    )
+-    parser.add_argument(
+-        "--color",
+-        default="auto",
+-        choices=["auto", "always", "never"],
+-        help="show colored diff (default: auto)",
+-    )
+-    parser.add_argument(
+-        "-e",
+-        "--exclude",
+-        metavar="PATTERN",
+-        action="append",
+-        default=[],
+-        help="exclude paths matching the given glob-like pattern(s)"
+-        " from recursive search",
+-    )
+-
+-    args = parser.parse_args()
+-
+-    # use default signal handling, like diff return SIGINT value on ^C
+-    # https://bugs.python.org/issue14229#msg156446
+-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+-    try:
+-        signal.SIGPIPE
+-    except AttributeError:
+-        # compatibility, SIGPIPE does not exist on Windows
+-        pass
+-    else:
+-        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+-
+-    colored_stdout = False
+-    colored_stderr = False
+-    if args.color == "always":
+-        colored_stdout = True
+-        colored_stderr = True
+-    elif args.color == "auto":
+-        colored_stdout = sys.stdout.isatty()
+-        colored_stderr = sys.stderr.isatty()
+-
+-    version_invocation = [args.clang_format_executable, str("--version")]
+-    try:
+-        subprocess.check_call(version_invocation, stdout=DEVNULL)
+-    except subprocess.CalledProcessError as e:
+-        print_trouble(parser.prog, str(e), use_colors=colored_stderr)
+-        return ExitStatus.TROUBLE
+-    except OSError as e:
+-        print_trouble(
+-            parser.prog,
+-            "Command '{}' failed to start: {}".format(
+-                subprocess.list2cmdline(version_invocation), e
+-            ),
+-            use_colors=colored_stderr,
+-        )
+-        return ExitStatus.TROUBLE
+-
+-    retcode = ExitStatus.SUCCESS
+-    files = list_files(
+-        args.files,
+-        recursive=args.recursive,
+-        exclude=args.exclude,
+-        extensions=args.extensions.split(","),
+-    )
+-
+-    if not files:
+-        return
+-
+-    njobs = args.j
+-    if njobs == 0:
+-        njobs = multiprocessing.cpu_count() + 1
+-    njobs = min(len(files), njobs)
+-
+-    if njobs == 1:
+-        # execute directly instead of in a pool,
+-        # less overhead, simpler stacktraces
+-        it = (run_clang_format_diff_wrapper(args, file) for file in files)
+-        pool = None
+-    else:
+-        pool = multiprocessing.Pool(njobs)
+-        it = pool.imap_unordered(partial(run_clang_format_diff_wrapper, args), files)
+-    while True:
+-        try:
+-            outs, errs = next(it)
+-        except StopIteration:
+-            break
+-        except DiffError as e:
+-            print_trouble(parser.prog, str(e), use_colors=colored_stderr)
+-            retcode = ExitStatus.TROUBLE
+-            sys.stderr.writelines(e.errs)
+-        except UnexpectedError as e:
+-            print_trouble(parser.prog, str(e), use_colors=colored_stderr)
+-            sys.stderr.write(e.formatted_traceback)
+-            retcode = ExitStatus.TROUBLE
+-            # stop at the first unexpected error,
+-            # something could be very wrong,
+-            # don't process all files unnecessarily
+-            if pool:
+-                pool.terminate()
+-            break
+-        else:
+-            sys.stderr.writelines(errs)
+-            if outs == []:
+-                continue
+-            if not args.quiet:
+-                print_diff(outs, use_color=colored_stdout)
+-            if retcode == ExitStatus.SUCCESS:
+-                retcode = ExitStatus.DIFF
+-    return retcode
+-
+-
+-if __name__ == "__main__":
+-    sys.exit(main())
+diff --git a/.github/run_benchmark_wrapper.py b/.github/run_benchmark_wrapper.py
+deleted file mode 100644
+index 3ad97ec..0000000
+--- a/.github/run_benchmark_wrapper.py
++++ /dev/null
+@@ -1,72 +0,0 @@
+-# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+-#
+-# This source code is licensed under the BSD license found in the
+-# LICENSE file in the root directory of this source tree.
+-
+-import glob
+-import os
+-import shlex
+-import subprocess
+-import sys
+-
+-import torch
+-
+-import xformers
+-
+-# Build failed - return early
+-if not xformers._has_cpp_library:
+-    print("xFormers wasn't built correctly - can't run benchmarks")
+-    sys.exit(0)
+-
+-benchmark_script = os.path.join("xformers", "benchmarks", sys.argv[1])
+-benchmark_fn = sys.argv[2]
+-label = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()[:8]
+-cmd = [
+-    sys.executable,
+-    benchmark_script,
+-    "--label",
+-    label,
+-    "--fn",
+-    benchmark_fn,
+-    "--fail_if_regression",
+-    "--quiet",
+-]
+-env = (
+-    torch.cuda.get_device_name(torch.cuda.current_device())
+-    .replace(" ", "_")
+-    .replace("-", "_")
+-    .replace(".", "_")
+-)
+-
+-# Figure out the name of the baseline
+-pattern = os.path.join(os.environ["XFORMERS_BENCHMARKS_CACHE"], benchmark_fn, "*.csv")
+-ref_names = glob.glob(pattern)
+-baseline_names = set(
+-    os.path.basename(s)[: -len(".csv")]
+-    for s in ref_names
+-    # Only compare to benchmark data on same hardware
+-    if env in os.path.basename(s)
+-)
+-if baseline_names:
+-    if len(baseline_names) > 1:
+-        raise RuntimeError(
+-            f"Supplied more than one reference for this benchmark: {','.join(baseline_names)}"
+-        )
+-    cmd += ["--compare", ",".join(baseline_names)]
+-
+-print("EXEC:", shlex.join(cmd))
+-
+-retcode = 0
+-try:
+-    subprocess.check_call(cmd)
+-except subprocess.CalledProcessError as e:
+-    retcode = e.returncode
+-
+-# Remove original benchmark files
+-for f in ref_names:
+-    os.remove(f)
+-# Rename new ones as 'ref'
+-for f in glob.glob(pattern):
+-    os.rename(f, f.replace(label, "reference"))
+-
+-sys.exit(retcode)
+diff --git a/.github/workflows/conda.yml b/.github/workflows/conda.yml
+deleted file mode 100644
+index 9d38fb6..0000000
+--- a/.github/workflows/conda.yml
++++ /dev/null
+@@ -1,139 +0,0 @@
+-name: conda
+-
+-on:
+-  workflow_dispatch: {}
+-  pull_request:
+-    paths:
+-      - "packaging/**"
+-      - ".github/workflows/conda.yml"
+-      - "setup.py"
+-      - "requirements*.txt"
+-  push:
+-    branches:
+-      - main
+-    tags:
+-      - "v[0-9]+*"
+-
+-# this yaml file can be cleaned up using yaml anchors, but they're not supported in github actions yet
+-# https://github.com/actions/runner/issues/1182
+-
+-env:
+-  # you need at least cuda 5.0 for some of the stuff compiled here.
+-  TORCH_CUDA_ARCH_LIST: "5.0+PTX 6.0 6.1 7.0 7.5 8.0 8.6"
+-  MAX_JOBS: 2  # Avoids OOMs
+-  XFORMERS_BUILD_TYPE: "Release"
+-  XFORMERS_PACKAGE_FROM: "conda-${{ github.ref_name }}"
+-
+-jobs:
+-  build:
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        python:
+-          - "3.9"
+-          - "3.10"
+-        config:
+-          # NOTE: Always build with nvcc 11.6.2 (`conda_builder_tag`)
+-          # See https://github.com/facebookresearch/xformers/issues/712
+-          - torch_version: "2.1.0"
+-            torch_channel: "pytorch-nightly"
+-            cuda_version: "11.8.0"
+-            cuda_dep_runtime: ">=11.7,<11.9"
+-            conda_builder_tag: cuda116
+-
+-          - torch_version: "2.0.1"
+-            torch_channel: "pytorch"
+-            cuda_version: "11.8.0"
+-            cuda_dep_runtime: ">=11.7,<11.9"
+-            conda_builder_tag: cuda116
+-
+-          - torch_version: "1.13.1"
+-            torch_channel: "pytorch"
+-            cuda_version: "11.7.1"
+-            cuda_dep_runtime: ">=11.6,<11.8"
+-            conda_builder_tag: cuda116
+-
+-          - torch_version: "1.12.1"
+-            torch_channel: "pytorch"
+-            cuda_version: "11.6.2"
+-            cuda_dep_runtime: ">=11.3,<11.7"
+-            conda_builder_tag: cuda116
+-
+-    name: py${{ matrix.python }}-torch${{ matrix.config.torch_version }}-cu${{ matrix.config.cuda_version }}
+-    runs-on: 4-core-ubuntu  # 16GB RAM, 4 vCPUs
+-
+-    container:
+-      image: pytorch/conda-builder:${{ matrix.config.conda_builder_tag }}
+-    env:
+-      # alias for the current python version
+-      PY: /opt/conda/bin/python
+-
+-    timeout-minutes: 360
+-    defaults:
+-      run:
+-        shell: bash
+-    steps:
+-      - name: System info
+-        run: |
+-          ldd --version
+-          $PY --version
+-          echo "Memory and swap:"
+-          free -h
+-          echo
+-          swapon --show
+-      - name: Set tag = 'dev'
+-        run: echo "XFORMERS_CONDA_TAG=dev" >> $GITHUB_ENV
+-      - name: Set tag = 'main'
+-        if: startsWith(github.ref, 'refs/tags/v')
+-        run: echo "XFORMERS_CONDA_TAG=main" >> $GITHUB_ENV
+-      - run: echo "${XFORMERS_CONDA_TAG}"
+-      - name: Free up disk space
+-        run: |
+-          df -h /
+-          sudo rm -rf /__t/Python /__t/CodeQL /__t/go /__t/Python /__t/PyPy /__t/node
+-          sudo rm -rf /opt/conda/pkgs
+-          df -h /
+-      - name: Recursive checkout
+-        uses: actions/checkout@v3
+-        with:
+-          submodules: recursive
+-          path: "."
+-          fetch-depth: 0 # for tags
+-      - name: Define version
+-        run: |
+-          set -Eeuo pipefail
+-          git config --global --add safe.directory "*"
+-          $PY -m pip install packaging
+-          version=`$PY packaging/compute_wheel_version.py`
+-          echo "BUILD_VERSION=$version" >> ${GITHUB_ENV}
+-          cat ${GITHUB_ENV}
+-      - name: Build & store/upload
+-        env:
+-          # NOTE: Ternary operator: ${{ cond && 'trueVal' || 'falseVal' }}
+-          STORE_PT_PACKAGE: ${{ matrix.config.torch_channel != 'pytorch' && '--store-pytorch-package' || '' }}
+-        run: |
+-          $PY packaging/build_conda.py \
+-          --cuda ${{ matrix.config.cuda_version }} \
+-          --python ${{ matrix.python }} \
+-          --pytorch ${{ matrix.config.torch_version }} \
+-          --pytorch-channel ${{ matrix.config.torch_channel }} \
+-          --cuda-dep-runtime "${{ matrix.config.cuda_dep_runtime }}" \
+-          --store $STORE_PT_PACKAGE
+-      - name: Upload
+-        if: github.repository == 'facebookresearch/xformers' && github.event_name != 'pull_request' && matrix.config.torch_channel == 'pytorch'
+-        env:
+-          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+-        run: |
+-          # This might fail, let's retry it multiple times
+-          for i in {1..20}
+-          do
+-              [[ $i != 1 ]] && sleep 15
+-              echo "Attempt $i"
+-              anaconda upload --user xformers --label ${XFORMERS_CONDA_TAG} packages/* && break
+-          done
+-      - uses: actions/upload-artifact@v3
+-        if: success() || failure()
+-        with:
+-          name: linux-py${{ matrix.python }}-torch${{ matrix.config.torch_version }}
+-          path: packages
+-# Note: it might be helpful to have additional steps that test if the built wheels actually work
+diff --git a/.github/workflows/gh-pages.yml b/.github/workflows/gh-pages.yml
+deleted file mode 100644
+index 95401c2..0000000
+--- a/.github/workflows/gh-pages.yml
++++ /dev/null
+@@ -1,53 +0,0 @@
+-name: Build & deploy documentation
+-
+-on:
+-  push:
+-    branches:
+-      - main
+-  pull_request:
+-
+-jobs:
+-  deploy:
+-    runs-on: ubuntu-20.04
+-    concurrency:
+-      group: ${{ github.workflow }}-${{ github.ref }}
+-
+-    steps:
+-      - uses: actions/checkout@v2
+-
+-      - name: Setup Python
+-        uses: actions/setup-python@v2
+-        with:
+-          python-version: '3.8'
+-
+-      - name: Upgrade pip
+-        run: |
+-          # install pip=>20.1 to use "pip cache dir"
+-          python3 -m pip install --upgrade pip
+-
+-      - name: Get pip cache dir
+-        id: pip-cache
+-        run: echo "::set-output name=dir::$(pip cache dir)"
+-
+-      - name: Cache dependencies
+-        uses: actions/cache@v2
+-        with:
+-          path: ${{ steps.pip-cache.outputs.dir }}
+-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+-          restore-keys: |
+-            ${{ runner.os }}-pip-
+-
+-      - name: Build docs
+-
+-        run: |
+-          cd docs
+-          pip install --progress-bar off -r requirements.txt
+-          make help
+-          make html
+-
+-      - name: Deploy
+-        uses: peaceiris/actions-gh-pages@v3
+-        with:
+-          github_token: ${{ secrets.GITHUB_TOKEN }}
+-          publish_dir: docs/build/html
+-        if: github.event_name != 'pull_request'
+diff --git a/.github/workflows/linters.yml b/.github/workflows/linters.yml
+deleted file mode 100644
+index 44dd0ca..0000000
+--- a/.github/workflows/linters.yml
++++ /dev/null
+@@ -1,10 +0,0 @@
+-on:
+-  pull_request: {}
+-  push:
+-    branches:
+-      - main
+-
+-jobs:
+-  repo:
+-    uses: ./.github/workflows/linters_reusable.yml
+-
+diff --git a/.github/workflows/linters_reusable.yml b/.github/workflows/linters_reusable.yml
+deleted file mode 100644
+index d005f3e..0000000
+--- a/.github/workflows/linters_reusable.yml
++++ /dev/null
+@@ -1,51 +0,0 @@
+-name: lint
+-
+-on:
+-  workflow_call:
+-    inputs:
+-      pre-script:
+-        type: string
+-
+-jobs:
+-  linters:
+-    runs-on: ubuntu-22.04
+-
+-    steps:
+-      - uses: actions/checkout@v3
+-        with:
+-          fetch-depth: 0
+-      - name: Setup Python
+-        uses: actions/setup-python@v2
+-        with:
+-          python-version: '3.8'
+-      - name: Run pre-script
+-        if: ${{ inputs.pre-script }}
+-        run: ${{ inputs.pre-script }}
+-      # Triton is too slow to install, and beside it's not needed
+-      - run: sed -i '/triton/d' requirements-test.txt
+-      - name: Install deps
+-        run: pip install -r requirements-test.txt
+-      - name: isort
+-        if: success() || failure()
+-        run: python -m isort . --check --profile black
+-      - name: black
+-        if: success() || failure()
+-        run: python -m black --check . --exclude "third_party/"
+-      - name: mypy
+-        if: success() || failure()
+-        run: |
+-          python -m mypy --version
+-          python -m mypy --ignore-missing-imports --scripts-are-modules --pretty --exclude "(build|stubs|third_party|docs|examples|xformers/_flash_attn|setup.py)" .
+-      - name: flake8
+-        if: success() || failure()
+-        run: python -m flake8 --config .flake8 --show-source --statistics
+-      - name: clang-format
+-        if: success() || failure()
+-        run: |
+-          # install clang-format here, so that it gets cached
+-          sudo apt-get update
+-          sudo apt-get install clang-format
+-          clang-format --version
+-
+-          # apply to our files - excluding autogenerated files
+-          ./.github/run-clang-format.py -e "*fmha/autogen" -r xformers/csrc
+diff --git a/.github/workflows/wheels.yml b/.github/workflows/wheels.yml
+deleted file mode 100644
+index 3e31b16..0000000
+--- a/.github/workflows/wheels.yml
++++ /dev/null
+@@ -1,72 +0,0 @@
+-name: wheels
+-
+-on:
+-  pull_request:
+-    paths:
+-      - "packaging/compute_wheel_version.sh"
+-      - ".github/workflows/wheel*"
+-      - "setup.py"
+-      - "requirements*.txt"
+-  push:
+-    branches:
+-      - main
+-    tags:
+-      - "v[0-9]+*"
+-
+-jobs:
+-  build:
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        os:
+-          - ubuntu-22.04
+-          - windows-2019
+-        python:
+-          - "3.8"
+-          - "3.9"
+-          - "3.10"
+-          - "3.11"
+-        torch_version:
+-          - "2.0.1"
+-          - "1.13.1"
+-          - "1.12.1"
+-        exclude:
+-          # py311 only works with PyTorch >= 2.0
+-          - python: "3.11"
+-            torch_version: "1.12.1"
+-          - python: "3.11"
+-            torch_version: "1.13.1"
+-        include:
+-          - sdist: false
+-            enabled: true
+-            publish: false
+-            cuda_short_version: "CUDA_VERSION_NOT_SET"
+-          # Publish only for latest pytorch
+-          - torch_version: "2.0.1"
+-            publish: true
+-          # Publish source distribution only from this runner
+-          - os: ubuntu-22.04
+-            python: "3.10"
+-            torch_version: "2.0.1"
+-            sdist: true
+-          # Set corresponding CUDA version
+-          - torch_version: "2.0.1"
+-            cuda_short_version: "118"
+-          - torch_version: "1.13.1"
+-            cuda_short_version: "117"
+-          - torch_version: "1.12.1"
+-            cuda_short_version: "116"
+-
+-    uses: ./.github/workflows/wheels_reusable.yml
+-    if: github.repository == 'facebookresearch/xformers' || github.event_name == 'pull_request'
+-    with:
+-      os: ${{ matrix.os }}
+-      python: ${{ matrix.python }}
+-      torch_version: ${{ matrix.torch_version }}
+-      cuda_short_version: ${{ matrix.cuda_short_version }}
+-      publish: ${{ matrix.publish == true && github.event_name != 'pull_request'}}
+-      sdist: ${{ matrix.sdist == true }}
+-      twine_username: __token__
+-    secrets:
+-      twine_password: ${{ secrets.PYPI_TOKEN }}
+-
+diff --git a/.github/workflows/wheels_reusable.yml b/.github/workflows/wheels_reusable.yml
+deleted file mode 100644
+index 240474d..0000000
+--- a/.github/workflows/wheels_reusable.yml
++++ /dev/null
+@@ -1,156 +0,0 @@
+-name: wheels
+-
+-on:
+-  workflow_call:
+-    secrets:
+-      twine_password:
+-        required: true
+-    inputs:
+-      twine_username:
+-        required: true
+-        type: string
+-      os:
+-        required: true
+-        type: string
+-      python:
+-        required: true
+-        type: string
+-      torch_version:
+-        required: true
+-        type: string
+-        description: "Example: 1.13.1"
+-      cuda_short_version:
+-        required: true
+-        type: string
+-        description: "Example: 117 for 11.7"
+-      publish:
+-        required: true
+-        type: boolean
+-      sdist:
+-        required: true
+-        type: boolean
+-      pypirc:
+-        required: false
+-        type: string
+-      arch_list:
+-        required: false
+-        type: string
+-        default: "5.0+PTX 6.0 6.1 7.0 7.5 8.0 8.6"
+-
+-# this yaml file can be cleaned up using yaml anchors, but they're not supported in github actions yet
+-# https://github.com/actions/runner/issues/1182
+-
+-env:
+-  # you need at least cuda 5.0 for some of the stuff compiled here.
+-  TORCH_CUDA_ARCH_LIST: ${{ inputs.arch_list }}
+-  MAX_JOBS: 1 # will crash otherwise
+-  DISTUTILS_USE_SDK: 1 # otherwise distutils will complain on windows about multiple versions of msvc
+-  XFORMERS_BUILD_TYPE: "Release"
+-  TWINE_USERNAME: __token__
+-  XFORMERS_PACKAGE_FROM: "wheel-${{ github.ref_name }}"
+-
+-jobs:
+-  build_wheels:
+-    name: ${{ inputs.os }}-py${{ inputs.python }}-torch${{ inputs.torch_version }}+cu${{ inputs.cuda_short_version }}
+-    runs-on: ${{ inputs.os }}
+-    env:
+-      # alias for the current python version
+-      # windows does not have per version binary, it is just 'python3'
+-      PY: python${{ contains(inputs.os, 'ubuntu') && inputs.python || '3' }}
+-
+-    container: ${{ contains(inputs.os, 'ubuntu') && 'quay.io/pypa/manylinux2014_x86_64' || null }}
+-    timeout-minutes: 360
+-    defaults:
+-      run:
+-        shell: bash
+-    steps:
+-      - id: cuda_info
+-        shell: python
+-        run: |
+-          import os
+-          import sys
+-          print(sys.version)
+-          # https://github.com/Jimver/cuda-toolkit/blob/master/src/links/linux-links.ts
+-          full_version, install_script = {
+-            "118": ("11.8.0", "https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run"),
+-            "117": ("11.7.1", "https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run"),
+-            "116": ("11.6.2", "https://developer.download.nvidia.com/compute/cuda/11.6.2/local_installers/cuda_11.6.2_510.47.03_linux.run"),
+-          }["${{ inputs.cuda_short_version }}"]
+-          with open(os.environ['GITHUB_OUTPUT'], "r+") as fp:
+-            fp.write("CUDA_VERSION=" + full_version + "\n")
+-            fp.write("CUDA_INSTALL_SCRIPT=" + install_script + "\n")
+-      - name: Recursive checkout
+-        uses: actions/checkout@v3
+-        with:
+-          submodules: recursive
+-          path: "."
+-          fetch-depth: 0 # for tags
+-
+-      - name: Setup twine config
+-        if: inputs.pypirc
+-        run: |
+-          echo "${{ inputs.pypirc }}" > ~/.pypirc
+-          cat ~/.pypirc
+-
+-      - name: Define version
+-        run: |
+-          set -Eeuo pipefail
+-          git config --global --add safe.directory "*"
+-          $PY -m pip install packaging
+-          version=`$PY packaging/compute_wheel_version.py`
+-          echo "BUILD_VERSION=$version" >> ${GITHUB_ENV}
+-          cat ${GITHUB_ENV}
+-
+-      - name: Setup proper pytorch dependency in "requirements.txt"
+-        run: |
+-          sed -i '/torch/d' ./requirements.txt
+-          echo "torch == ${{ inputs.torch_version }}" >> ./requirements.txt
+-          cat ./requirements.txt
+-
+-      - if: runner.os == 'Windows'
+-        name: (Windows) Setup Runner
+-        uses: ./.github/actions/setup-windows-runner
+-        with:
+-          cuda: ${{ steps.cuda_info.outputs.CUDA_VERSION }}
+-          python: ${{ inputs.python }}
+-
+-      - name: Install dependencies
+-        run: $PY -m pip install wheel setuptools twine -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu${{ inputs.cuda_short_version }}
+-
+-      - if: runner.os == 'Linux'
+-        name: (Linux) install cuda
+-        run: >
+-          yum install wget git prename -y &&
+-          wget -q "${{ steps.cuda_info.outputs.CUDA_INSTALL_SCRIPT }}" -O cuda.run &&
+-          sh ./cuda.run --silent --toolkit &&
+-          rm ./cuda.run
+-
+-      - name: Build wheel
+-        run: $PY setup.py bdist_wheel -d dist/ -k $PLAT_ARG
+-        env:
+-          PLAT_ARG: ${{ contains(inputs.os, 'ubuntu') && '--plat-name manylinux2014_x86_64' || '' }}
+-
+-      - uses: actions/upload-artifact@v3
+-        with:
+-          name: ${{ inputs.os }}-py${{ inputs.python }}-torch${{ inputs.torch_version }}+cu${{ inputs.cuda_short_version }}
+-          path: dist/*.whl
+-
+-      - name: Upload wheel to PyPi
+-        if: inputs.publish
+-        run: $PY -m twine upload dist/*.whl
+-        env:
+-          TWINE_USERNAME: ${{ inputs.twine_username }}
+-          TWINE_PASSWORD: ${{ secrets.twine_password }}
+-
+-      - name: Upload source distribution to PyPi
+-        if: inputs.publish && inputs.sdist
+-        run: |
+-          rm -rf dist/
+-          # unpin pytorch version
+-          git checkout HEAD -- ./requirements.txt
+-          $PY setup.py sdist -d sdist/
+-          $PY -m twine upload sdist/*
+-        env:
+-          TWINE_USERNAME: ${{ inputs.twine_username }}
+-          TWINE_PASSWORD: ${{ secrets.twine_password }}
+-# Note: it might be helpful to have additional steps that test if the built wheels actually work
+diff --git a/.github/workflows/win-build.yml b/.github/workflows/win-build.yml
+deleted file mode 100644
+index 3cdc15d..0000000
+--- a/.github/workflows/win-build.yml
++++ /dev/null
+@@ -1,62 +0,0 @@
+-name: win-build
+-
+-on:
+-  pull_request:
+-    paths:
+-      - "xformers/csrc/**"
+-      - ".github/workflows/win-build.yml"
+-      - "setup.py"
+-      - "requirements*.txt"
+-
+-env:
+-  FORCE_CUDA: 1
+-  MAX_JOBS: 4
+-  DISTUTILS_USE_SDK: 1 # otherwise distutils will complain on windows about multiple versions of msvc
+-  XFORMERS_BUILD_TYPE: "Release"
+-
+-jobs:
+-  win_build:
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        arch:
+-          - "8.0"
+-          - "7.0"
+-    name: win-build-${{ matrix.arch }}
+-    runs-on: windows-2019
+-    env:
+-      PY: python3
+-      TORCH_CUDA_ARCH_LIST: ${{ matrix.arch }}
+-
+-    timeout-minutes: 360
+-    defaults:
+-      run:
+-        shell: bash
+-    steps:
+-      - name: Recursive checkout
+-        uses: actions/checkout@v3
+-        with:
+-          submodules: recursive
+-          path: "."
+-
+-      - name: Setup Runner
+-        uses: ./.github/actions/setup-windows-runner
+-        with:
+-          cuda: "11.6.2"
+-          python: "3.8"
+-
+-      - name: Install build dependencies
+-        run: |
+-          $PY -m pip install wheel setuptools ninja torch==2.0.1 -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu117
+-          git config --global --add safe.directory "*"
+-          $PY -c "import torch; print('torch', torch.__version__)"
+-          $PY -c "import torch; print('torch.cuda', torch.version.cuda)"
+-
+-      - name: Create sdist
+-        run: $PY setup.py sdist
+-
+-      - name: Build from sdist
+-        run: $PY -m pip install -v dist/*
+-
+-      - name: Info
+-        run: $PY -m xformers.info
+diff --git a/xformers/components/attention/__init__.py b/xformers/components/attention/__init__.py
+index a542689..83ca986 100644
+--- a/xformers/components/attention/__init__.py
++++ b/xformers/components/attention/__init__.py
+@@ -17,6 +17,7 @@ from xformers.utils import (
+ 
+ from ._sputnik_sparse import SparseCS
+ from .attention_mask import AttentionMask
++from .attention_linear import AttentionLinear
+ from .base import Attention, AttentionConfig  # noqa
+ 
+ logger = logging.getLogger("xformers")
+diff --git a/xformers/components/attention/attention_linear.py b/xformers/components/attention/attention_linear.py
+new file mode 100644
+index 0000000..91cf75b
+--- /dev/null
++++ b/xformers/components/attention/attention_linear.py
+@@ -0,0 +1,7 @@
++import torch
++
++class AttentionLinear(torch.nn.Linear):
++    def __init__(self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None) -> None:
++        super().__init__(in_features, out_features, bias, device, dtype)
++    def forward(self, input: torch.Tensor) -> torch.Tensor:
++        return super().forward(input)
+diff --git a/xformers/components/attention/favor.py b/xformers/components/attention/favor.py
+index 57bd776..3fafb81 100644
+--- a/xformers/components/attention/favor.py
++++ b/xformers/components/attention/favor.py
+@@ -19,6 +19,7 @@ from xformers.components.attention.feature_maps import (
+     SMHyperbolic,
+     SMOrf,
+     SMReg,
++    SMReLU,
+ )
+ 
+ logger = logging.getLogger("xformers")
+@@ -26,7 +27,9 @@ logger = logging.getLogger("xformers")
+ 
+ @dataclass
+ class FavorAttentionConfig(AttentionConfig):
++    device: str
+     causal: Optional[bool]
++    input_features: Optional[int] = None # Original number of features
+     dim_features: Optional[int] = None  # The dimensions of the random features
+     dim_head: Optional[
+         int
+@@ -35,12 +38,16 @@ class FavorAttentionConfig(AttentionConfig):
+         int
+     ] = None  # The number of iterations before the random features are re-drawn from scratch
+     feature_map: Optional[FeatureMapType] = None
++    feature_map_type: Optional[FeatureMapType] = "sm_reg"
++    sep_proj: Optional[bool] = False
++    # device: Optional[str] = "cpu"
+ 
+ 
+ @register_attention("favor", FavorAttentionConfig)
+ class FavorAttention(Attention):
+     def __init__(
+         self,
++        input_features: int,
+         causal: bool = False,
+         dropout: float = 0.0,
+         dim_features: Optional[int] = None,
+@@ -48,6 +55,9 @@ class FavorAttention(Attention):
+         iter_before_redraw: Optional[int] = None,
+         feature_map_type: FeatureMapType = FeatureMapType.SMReg,
+         normalize_inputs: bool = False,
++        sep_proj: bool = False,
++        traceable: bool = False,
++        device: str = "cpu",
+         *_,
+         **__,
+     ):
+@@ -77,6 +87,8 @@ class FavorAttention(Attention):
+         self.normalize_inputs = normalize_inputs
+         self.feature_map_type = feature_map_type
+         self.attn_drop = nn.Dropout(dropout, inplace=True)
++        self.traceable = traceable
++        self.device = device
+ 
+         # Setup dimension-dependent variables
+         # Reasonable dimension default
+@@ -91,20 +103,29 @@ class FavorAttention(Attention):
+             )
+         else:
+             self.dim_features = dim_features
++        self.input_features = input_features
+ 
+         feature_map_constructor = {
+             FeatureMapType.SMHyp: SMHyperbolic,
+             FeatureMapType.SMReg: SMReg,
+             FeatureMapType.SMOrf: SMOrf,
++            FeatureMapType.SMReLU: SMReLU,
+         }[self.feature_map_type]
+ 
+         feature_settings = {
++            "input_features": self.input_features,
+             "dim_features": self.dim_features,
+             "iter_before_redraw": self.iter_before_redraw,
+             "normalize_inputs": self.normalize_inputs,
++            "device": self.device
+         }
+ 
+-        self.feature_map: FeatureMap = feature_map_constructor(**feature_settings)  # type: ignore
++        self.sep_proj = sep_proj
++        if sep_proj:
++            self.feature_map_k: FeatureMap = feature_map_constructor(**feature_settings)  # type: ignore
++            self.feature_map_q: FeatureMap = feature_map_constructor(**feature_settings)  # type: ignore
++        else:
++            self.feature_map: FeatureMap = feature_map_constructor(**feature_settings)  # type: ignore
+ 
+         # Properties specific to this attention mechanism
+         self.supports_attention_mask = False
+@@ -143,17 +164,23 @@ class FavorAttention(Attention):
+         **__,
+     ):
+ 
+-        # Project key and queries onto the feature map space
+-        k_prime = self.feature_map(k)
+-        q_prime = self.feature_map(q)
++        mask = (~(k == 0.).all(-1)).unsqueeze(-1)
++        if self.sep_proj:
++            # Project key and queries onto the feature map space
++            k_prime = self.feature_map_k(k)
++            q_prime = self.feature_map_q(q)
++        else:
++            k_prime = self.feature_map(k)
++            q_prime = self.feature_map(q)
+ 
+         with autocast(enabled=False):
+             # The softmax kernel approximation for Favor will easily overflow
+             # Force the computations here to stay in fp32 for numerical stability
+             # Note that the dimensions are vastly reduced when compared to scaled_dot_product
+-            k_prime = self._maybe_promote(k_prime)
+-            q_prime = self._maybe_promote(q_prime)
+-            v = self._maybe_promote(v)
++            if not self.traceable:
++                k_prime = self._maybe_promote(k_prime)
++                q_prime = self._maybe_promote(q_prime)
++                v = self._maybe_promote(v)
+ 
+             if not self.causal:
+                 att_normalization = q_prime @ (
+@@ -170,4 +197,5 @@ class FavorAttention(Attention):
+         if self.attn_drop is not None:
+             att = self.attn_drop(att)
+ 
+-        return att
++        # this mask makes sure that the zero-embedded PAD inputs stay at zero.
++        return att * mask
+diff --git a/xformers/components/attention/feature_maps/__init__.py b/xformers/components/attention/feature_maps/__init__.py
+index ed308d1..13e2b8b 100644
+--- a/xformers/components/attention/feature_maps/__init__.py
++++ b/xformers/components/attention/feature_maps/__init__.py
+@@ -7,16 +7,18 @@
+ from enum import Enum
+ 
+ from .base import FeatureMap, FeatureMapConfig
+-from .softmax import NormDistribution, SMHyperbolic, SMOrf, SMReg
++from .softmax import NormDistribution, SMHyperbolic, SMOrf, SMReg, SMReLU
+ 
+ 
+ class FeatureMapType(str, Enum):
+     SMOrf = "sm_orf"
+     SMHyp = "sm_hyp"
+     SMReg = "sm_reg"  # regularized softmax kernel
++    SMReLU = "sm_relu"
+ 
+ 
+ __all__ = [
++    "SMReLU",
+     "SMOrf",
+     "SMReg",
+     "SMHyperbolic",
+diff --git a/xformers/components/attention/feature_maps/base.py b/xformers/components/attention/feature_maps/base.py
+index 8d41de8..a34fa19 100644
+--- a/xformers/components/attention/feature_maps/base.py
++++ b/xformers/components/attention/feature_maps/base.py
+@@ -24,6 +24,7 @@ class FeatureMapConfig:
+     iter_before_redraw: Optional[int]
+     normalize_inputs: Optional[bool]
+     epsilon: Optional[float]
++    device: Optional[str]
+ 
+ 
+ class FeatureMap(torch.nn.Module):
+@@ -33,6 +34,7 @@ class FeatureMap(torch.nn.Module):
+         iter_before_redraw: Optional[int] = None,
+         normalize_inputs: bool = False,
+         epsilon: float = 1e-6,
++        device: str = "cpu"
+     ):
+         super().__init__()
+ 
+@@ -43,7 +45,8 @@ class FeatureMap(torch.nn.Module):
+         self.features: Optional[torch.Tensor] = None
+         self.epsilon = epsilon
+         self.normalize_inputs = normalize_inputs
+-
++        self.device = device
++        
+         self._iter_counter = 0
+ 
+     @abstractmethod
+diff --git a/xformers/components/attention/feature_maps/softmax.py b/xformers/components/attention/feature_maps/softmax.py
+index d0dd1df..4c9d56a 100644
+--- a/xformers/components/attention/feature_maps/softmax.py
++++ b/xformers/components/attention/feature_maps/softmax.py
+@@ -6,12 +6,14 @@
+ 
+ import math
+ from enum import Enum, auto
+-from typing import Optional
++from typing import Optional, Union
+ 
+ import torch
+ from torch.autograd.profiler import record_function
++from aihwkit.nn import AnalogLinear
+ 
+ from .base import FeatureMap
++from xformers.components.attention import AttentionLinear
+ 
+ """
+ A set of feature maps which approximate the softmax kernel, as per the Performers_ paper.
+@@ -21,6 +23,10 @@ _Performers: "Rethinking attention with performers." K. Choromanski et al. (2020
+ """
+ 
+ 
++@torch.fx.wrap
++def _print(*args, **kwargs):
++    print(*args)
++
+ class NormDistribution(Enum):
+     Xi = auto()
+     Uniform = auto()
+@@ -29,15 +35,28 @@ class NormDistribution(Enum):
+ class SoftMaxPositiveEstimators(FeatureMap):
+     def __init__(
+         self,
++        input_features: int,
+         dim_features: int,
+         iter_before_redraw: Optional[int],
+         normalize_inputs: bool = False,
+         epsilon: float = 1e-6,
+         softmax_temp: float = -1,
++        traceable: bool = False,
++        device: str = "cpu"
+     ):
+-        super().__init__(dim_features, iter_before_redraw, normalize_inputs, epsilon)
++        super().__init__(dim_features, iter_before_redraw, normalize_inputs, epsilon, device)
+         self.softmax_temp = softmax_temp
+-
++        self.input_features = input_features
++        self.device = "cuda" if device == "cuda" and torch.cuda.is_available() else "cpu"
++        self.projection_layer = AttentionLinear(
++            in_features=input_features,
++            out_features=dim_features,
++            bias=False,
++            device=self.device
++        )
++        self.traceable = traceable
++        for param in self.projection_layer.parameters():
++            param.requires_grad = False
+         # Handle the scaling from all kernels by √m.
+         # This normalizes for all the feature maps involved
+         self.h_scale = math.log(math.sqrt(self.dim_features))
+@@ -49,20 +68,39 @@ class SoftMaxPositiveEstimators(FeatureMap):
+                 (
+                     self.iter_before_redraw is not None
+                     and self._iter_counter > self.iter_before_redraw
++                    and self.training
+                 )
+                 or self.features is None
+-                or self.features.device != x.device
+             ):
+                 # The feature map is actually using half the dimension, we'll concatenate + and - features
+-                self._iter_counter = 1
+-                self.features = self._get_feature_map(
+-                    x.shape[-1], self.dim_feature_map, x.device
+-                )
+-
++                if self.features is None:
++                    # don't actually re-draw them, but get them from the projection layer
++                    self.features = self.projection_layer.get_weights()[0].T if isinstance(self.projection_layer, AnalogLinear) else self.projection_layer.weight.T
++                    # w = self.projection_layer.get_weights()[0].T if isinstance(self.projection_layer, AnalogLinear) else self.projection_layer.weight.data.T
++                    # self.features = w.clone()
++                else:
++                    _print("WARNING: Redrawing features.", x=x) # pass x to add a dependency on it for tracing
++                    self._iter_counter = 1
++                    self.features = self._get_feature_map(
++                        self.input_features, self.dim_feature_map
++                    )
++
++                    if isinstance(self.projection_layer, AnalogLinear):
++                        self.projection_layer.set_weights(self.features.T)
++                        # self.projection_layer.analog_module.shared_weights.requires_grad = False
++                        self.projection_layer.analog_module.tile.weight.requires_grad = False
++                        # self.projection_layer.analog_module._backward_hook_handle = None
++                    else:
++                        self.projection_layer.weight = torch.nn.Parameter(self.features.T, requires_grad=False)
++                        # self.projection_layer.weight.requires_grad = False
++
++
++            # move the features to the same device. no-op if already on cuda
++            self.features = self.features.to(x.device)
+             features = self.features
+             assert features is not None
+ 
+-            if features.dtype != x.dtype:
++            if not self.traceable and features.dtype != x.dtype:
+                 self.features = features.to(x.dtype)
+ 
+             self._iter_counter += 1
+@@ -70,7 +108,7 @@ class SoftMaxPositiveEstimators(FeatureMap):
+             # Normalization / softmax
+             if self.softmax_temp < 0:
+                 # A = exp(QK.t/√d), so each input will be scaled by √√d
+-                self.softmax_temp = x.shape[-1] ** -0.25
++                self.softmax_temp = self.input_features ** -0.25
+ 
+             x_scaled = x * self.softmax_temp
+ 
+@@ -93,8 +131,8 @@ class SoftMaxPositiveEstimators(FeatureMap):
+     def _get_random_ortho_matrix(
+         blocks: int,
+         dim: int,
+-        device: torch.device,
+-        norm_distribution: NormDistribution = NormDistribution.Uniform,
++        device,
++        norm_distribution: NormDistribution = NormDistribution.Uniform
+     ) -> torch.Tensor:
+         r"""
+         Generate a random matrix whose rows are exactly orthonormal
+@@ -112,6 +150,7 @@ class SoftMaxPositiveEstimators(FeatureMap):
+ 
+         H = torch.randn((blocks, dim, dim), device=device, requires_grad=False)
+ 
++
+         # Randomly scale the norms of the features, Xi distributed
+         if norm_distribution == NormDistribution.Xi:
+             # NOTE: This averages to sqrt(d)
+@@ -137,7 +176,7 @@ class SMOrf(SoftMaxPositiveEstimators):
+     """
+ 
+     @torch.no_grad()
+-    def _get_feature_map(self, dim_input: int, dim_features: int, device: torch.device):
++    def _get_feature_map(self, dim_input: int, dim_features: int):
+         """
+         Generate the projection matrix onto the random features
+ 
+@@ -152,7 +191,7 @@ class SMOrf(SoftMaxPositiveEstimators):
+             math.ceil(dim_input / dim_features),
+             dim_features,
+             norm_distribution=NormDistribution.Xi,
+-            device=device,
++            device=self.device
+         )
+ 
+         return features.flatten(0, 1)[:dim_input]
+@@ -163,7 +202,9 @@ class SMOrf(SoftMaxPositiveEstimators):
+         assert self.features is not None
+ 
+         # Project onto the random feature map.
+-        x_scaled = x_scaled @ self.features
++        # x_scaled = x_scaled @ self.features       # old
++        with torch.no_grad():
++            x_scaled = self.projection_layer(x_scaled)  # hardware-compatible
+         return torch.exp(x_scaled + self.offset)
+ 
+ 
+@@ -178,6 +219,7 @@ class SMHyperbolic(SoftMaxPositiveEstimators):
+ 
+     def __init__(
+         self,
++        input_features: int,
+         dim_features: int,
+         iter_before_redraw: Optional[int],
+         normalize_inputs: bool = False,
+@@ -185,7 +227,12 @@ class SMHyperbolic(SoftMaxPositiveEstimators):
+         softmax_temp: float = -1,
+     ):
+         super().__init__(
+-            dim_features, iter_before_redraw, normalize_inputs, epsilon, softmax_temp
++            input_features,
++            dim_features,
++            iter_before_redraw,
++            normalize_inputs,
++            epsilon,
++            softmax_temp,
+         )
+ 
+         assert (
+@@ -194,7 +241,7 @@ class SMHyperbolic(SoftMaxPositiveEstimators):
+         self.dim_feature_map = self.dim_features // 2
+ 
+     @torch.no_grad()
+-    def _get_feature_map(self, dim_input: int, dim_features: int, device: torch.device):
++    def _get_feature_map(self, dim_input: int, dim_features: int):
+         """
+         Generate the projection matrix onto the random features
+ 
+@@ -209,7 +256,7 @@ class SMHyperbolic(SoftMaxPositiveEstimators):
+             math.ceil(dim_input / dim_features),
+             dim_features,
+             norm_distribution=NormDistribution.Xi,
+-            device=device,
++            device=self.device
+         )
+ 
+         return features.flatten(0, 1)[:dim_input]
+@@ -221,7 +268,9 @@ class SMHyperbolic(SoftMaxPositiveEstimators):
+         # Project onto the random feature map, concatenate both + and - results
+         # This follows Lemma 1 in the original Performers Paper to best approximate a
+         # softmax kernel (cosh representation)
+-        x_scaled = x_scaled @ self.features
++        # x_scaled = x_scaled @ self.features       # old
++        with torch.no_grad():
++            x_scaled = self.projection_layer(x_scaled)  # hardware-compatible
+         return torch.cat(
+             [torch.exp(x_scaled + self.offset), torch.exp(-x_scaled + self.offset)],
+             dim=-1,
+@@ -238,23 +287,32 @@ class SMReg(SoftMaxPositiveEstimators):
+ 
+     def __init__(
+         self,
++        input_features: int,
+         dim_features: int,
+         iter_before_redraw: Optional[int],
+         normalize_inputs: bool = False,
+         epsilon: float = 1e-6,
+         softmax_temp: float = -1,
++        device: str = "cpu"
+     ):
+-        super().__init__(
+-            dim_features, iter_before_redraw, normalize_inputs, epsilon, softmax_temp
+-        )
+ 
+         assert (
+             dim_features % 2 == 0
+         ), "The feature dimension needs to be even with this kernel"
+-        self.dim_feature_map = self.dim_features // 2
++        self.dim_feature_map = dim_features // 2
++
++        super().__init__(
++            input_features,
++            self.dim_feature_map,
++            iter_before_redraw,
++            normalize_inputs,
++            epsilon,
++            softmax_temp,
++            device=device
++        )
+ 
+     @torch.no_grad()
+-    def _get_feature_map(self, dim_input: int, dim_features: int, device: torch.device):
++    def _get_feature_map(self, dim_input: int, dim_features: int):
+         """
+         Generate the projection matrix onto the random features
+ 
+@@ -269,9 +327,9 @@ class SMReg(SoftMaxPositiveEstimators):
+             math.ceil(dim_input / dim_features),
+             dim_features,
+             norm_distribution=NormDistribution.Uniform,
+-            device=device,
++            device=self.device
+         ).flatten(0, 1)
+-        norms = math.sqrt(dim_input) * torch.ones(features.shape[0], device=device)
++        norms = math.sqrt(dim_input) * torch.ones(features.shape[0], device=self.device)
+         return (torch.diag(norms) @ features)[:dim_input]
+ 
+     def forward(self, x: torch.Tensor) -> torch.Tensor:
+@@ -281,8 +339,76 @@ class SMReg(SoftMaxPositiveEstimators):
+         # Project onto the random feature map, concatenate both + and - results
+         # This follows Lemma 1 in the original Performers Paper to best approximate a
+         # softmax kernel (cosh representation + sample regularization)
+-        x_scaled = x_scaled @ self.features
++        # x_scaled = x_scaled @ self.features       # old
++        with torch.no_grad():
++            x_scaled = self.projection_layer(x_scaled)  # hardware-compatible
+         return torch.cat(
+             [torch.exp(x_scaled + self.offset), torch.exp(-x_scaled + self.offset)],
+             dim=-1,
+         )
++    
++
++class SMReLU(SoftMaxPositiveEstimators):
++    """
++    "Regularized softmax kernel" estimator, ReLU based, as proposed in TODO.
++
++    TODO Reference
++    """
++
++    def __init__(
++        self,
++        input_features: int,
++        dim_features: int,
++        iter_before_redraw: Optional[int],
++        normalize_inputs: bool = False,
++        epsilon: float = 1e-6,
++        softmax_temp: float = -1,
++        device: str = "cpu"
++    ):
++
++        # We don't stack concatenate together
++        # assert (
++        #     dim_features % 2 == 0
++        # ), "The feature dimension needs to be even with this kernel"
++        # self.dim_feature_map = dim_features // 2
++        self.dim_feature_map = dim_features
++
++        super().__init__(
++            input_features,
++            self.dim_feature_map,
++            iter_before_redraw,
++            normalize_inputs,
++            epsilon,
++            softmax_temp,
++            device=device
++        )
++
++    @torch.no_grad()
++    def _get_feature_map(self, dim_input: int, dim_features: int):
++        """
++        Generate the projection matrix onto the random features
++
++        .. note: The heads dimension needs to be taken into account, hence the per-block random matrix
++        and not uniformally random.
++        """
++
++        # Get per block random unitary matrices.
++        # We need enough of them to project the whole input dimension, regardless of the
++        # requested dimension of the features
++        features = self._get_random_ortho_matrix(
++            math.ceil(dim_input / dim_features),
++            dim_features,
++            norm_distribution=NormDistribution.Xi,
++            device=self.device
++        )
++        return features.flatten(0, 1)[:dim_input]
++
++    def forward(self, x: torch.Tensor) -> torch.Tensor:
++        # Softmax-dimension related scaling, shared for all kernels
++        x_scaled = super().pre_scale(x)
++
++        # TODO How does this work?
++        with torch.no_grad():
++            x_scaled = self.projection_layer(x_scaled)  # hardware-compatible
++        # return torch.nn.functional.relu(x_scaled + self.offset)
++        return torch.nn.functional.relu(x_scaled)
+\ No newline at end of file
+diff --git a/xformers/components/attention/utils.py b/xformers/components/attention/utils.py
+index d6bb06a..751a162 100644
+--- a/xformers/components/attention/utils.py
++++ b/xformers/components/attention/utils.py
+@@ -22,7 +22,7 @@ def reshape_key_padding_mask(
+ def _reshape_key_padding_mask(
+     key_padding_mask: torch.Tensor, batch_size: int, src_len: int, num_heads: int
+ ) -> torch.Tensor:
+-    assert key_padding_mask.shape == (batch_size, src_len)
++    # assert key_padding_mask.shape == (batch_size, src_len)
+     key_padding_mask = (
+         key_padding_mask.view(batch_size, 1, 1, src_len)
+         .expand(-1, num_heads, -1, -1)
+@@ -45,7 +45,7 @@ def maybe_merge_masks(
+     if tgt_len is None:
+         tgt_len = src_len
+     if key_padding_mask is not None:
+-        assert key_padding_mask.shape == (batch_size, src_len)
++        # assert key_padding_mask.shape == (batch_size, src_len)
+         key_padding_mask = _reshape_key_padding_mask(
+             key_padding_mask, batch_size, src_len, num_heads
+         )

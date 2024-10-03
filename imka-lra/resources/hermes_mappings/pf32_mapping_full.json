@@ -1,0 +1,292 @@
+{
+    "encoder.encoder.layers.0.self_attn.k_proj": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.self_attn.k_proj.weight",
+        "bias": "encoder.encoder.layers.0.self_attn.k_proj.bias",
+        "tiles_map": {
+            "0": {
+                "0": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "encoder.encoder.layers.0.self_attn.v_proj": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.self_attn.v_proj.weight",
+        "bias": "encoder.encoder.layers.0.self_attn.v_proj.bias",
+        "tiles_map": {
+            "0": {
+                "1": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "encoder.encoder.layers.0.self_attn.q_proj": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.self_attn.q_proj.weight",
+        "bias": "encoder.encoder.layers.0.self_attn.q_proj.bias",
+        "tiles_map": {
+            "0": {
+                "2": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "encoder.encoder.layers.0.self_attn.out_proj": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.self_attn.out_proj.weight",
+        "bias": "encoder.encoder.layers.0.self_attn.out_proj.bias",
+        "tiles_map": {
+            "0": {
+                "3": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "encoder.encoder.layers.0.self_attn.attention.feature_map.projection_layer": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.self_attn.attention.feature_map.projection_layer.weight",
+        "bias": "encoder.encoder.layers.0.self_attn.attention.feature_map.projection_layer.bias",
+        "tiles_map": {
+            "0": {
+                "4": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            16
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            16
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 2
+    },
+    "encoder.encoder.layers.0.fc1": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.fc1.weight",
+        "bias": "encoder.encoder.layers.0.fc1.bias",
+        "tiles_map": {
+            "0": {
+                "5": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "encoder.encoder.layers.0.fc2": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.fc2.weight",
+        "bias": "encoder.encoder.layers.0.fc2.bias",
+        "tiles_map": {
+            "0": {
+                "6": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "classifier.0.0": {
+        "type": "Linear",
+        "weight": "classifier.0.0.weight",
+        "bias": "classifier.0.0.bias",
+        "tiles_map": {
+            "0": {
+                "6": [
+                    {
+                        "tile_col_region": [
+                            128,
+                            255
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            0,
+                            127
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ],
+                "7": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            129
+                        ],
+                        "tile_row_region": [
+                            0,
+                            128
+                        ],
+                        "weight_col_region": [
+                            127,
+                            256
+                        ],
+                        "weight_row_region": [
+                            0,
+                            128
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    },
+    "sentence_projection_layer": {
+        "type": "Linear",
+        "weight": "sentence_projection_layer.weight",
+        "bias": "sentence_projection_layer.bias",
+        "tiles_map": {
+            "0": {
+                "7": [
+                    {
+                        "tile_col_region": [
+                            129,
+                            131
+                        ],
+                        "tile_row_region": [
+                            0,
+                            256
+                        ],
+                        "weight_col_region": [
+                            0,
+                            2
+                        ],
+                        "weight_row_region": [
+                            0,
+                            256
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 1
+    }
+}

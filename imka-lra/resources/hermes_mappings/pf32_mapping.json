@@ -1,0 +1,32 @@
+{
+    "encoder.encoder.layers.0.self_attn.attention.feature_map.projection_layer": {
+        "type": "Linear",
+        "weight": "encoder.encoder.layers.0.self_attn.attention.feature_map.projection_layer.weight",
+        "bias": "encoder.encoder.layers.0.self_attn.attention.feature_map.projection_layer.bias",
+        "tiles_map": {
+            "0": {
+                "0": [
+                    {
+                        "tile_col_region": [
+                            0,
+                            128
+                        ],
+                        "tile_row_region": [
+                            0,
+                            16
+                        ],
+                        "weight_col_region": [
+                            0,
+                            128
+                        ],
+                        "weight_row_region": [
+                            0,
+                            16
+                        ]
+                    }
+                ]
+            }
+        },
+        "n_shared": 2
+    }
+}
