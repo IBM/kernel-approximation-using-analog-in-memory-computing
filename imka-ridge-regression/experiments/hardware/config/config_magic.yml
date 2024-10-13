@@ -1,0 +1,29 @@
+# Hermes hardware experiments config file.
+
+# dataset settings
+dataset: 'magic'
+dpath: 'data'
+norm: True
+d: 10
+fp_reference: True
+replication_factor: 1
+
+# experiments settings
+kernels : ['rbf', 'arccos0']
+hidden_features : [1,2,3,4,5]
+rf : ['rff', 'orf', 'sorf']
+seeds : [0,1,2,3,4,5,6,7,8,9]
+
+# Simulation noise settings
+
+input_quantization: True
+# Apply programming noise model after det_weights_to_program is
+# called (depending on the operation mode).
+apply_programming_noise_model: True
+# Apply the functional LDPU model during inference (depending on
+# the operation mode).
+apply_functional_LDPU_model: True
+# Calibrate the output noise model after det_weights_to_program
+# is called (depending on the operation mode), and apply it
+# during inference.
+apply_output_noise_model: True

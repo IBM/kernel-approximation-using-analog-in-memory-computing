@@ -1,0 +1,53 @@
+checkpoint:
+  best_checkpoint_metric: accuracy
+  maximize_best_checkpoint_metric: true
+  no_save: false
+  restore_file: ???
+  save_dir: ???
+common:
+  log_format: simple
+  log_interval: 50
+  seed: 0
+  tensorboard_logdir: ???
+criterion:
+  _name: lra_cross_entropy
+dataset:
+  batch_size: 256
+lr_scheduler:
+  _name: inverse_sqrt
+  warmup_updates: 1000
+model:
+  _name: transformer_lra_listops
+  activation_dropout: 0.0
+  activation_fn: gelu
+  attention_dropout: 0.0
+  classifier_out_dim: 128
+  dropout: 0.1
+  encoder:
+    attention_heads: 2
+    embed_dim: 64
+    ffn_embed_dim: 128
+    layers: 2
+    normalize_before: true
+    xformers_att_config: '{''name'': ''favor'', ''dim_features'':256, ''input_features'':32, ''iter_before_redraw'':1500, ''device'':''cuda''}'
+  input_type: text
+  layer_type: transformer
+  max_positions: 2000
+  norm_type: layernorm
+  sen_rep_type: mp
+optimization:
+  clip_norm: 0.5
+  lr:
+  - 0.001
+  max_epoch: 10000
+  max_update: 50000
+  sentence_avg: true
+optimizer:
+  _name: adam
+  adam_betas: (0.9,0.98)
+  adam_eps: 1.0e-06
+  weight_decay: 0.1
+task:
+  _name: lra-text
+  data: ???
+  num_classes: 10
