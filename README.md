@@ -1,13 +1,16 @@
 # Kernel Approximation using Analog In-Memory Computing
 
-### Julian Büchel, Giacomo Camposampiero, Athanasios Vasilopoulos, Corey Lammie, Manuel Le Gallo, Abbas Rahimi, and Abu Sebastian
+#### Julian Büchel, Giacomo Camposampiero, Athanasios Vasilopoulos, Corey Lammie, Manuel Le Gallo, Abbas Rahimi, and Abu Sebastian
 
-_Nature Machine Intelligence, 2024_ [[Article]](http://example.com) [[Preprint]](http://example.com)
+Nature Machine Intelligence, 2024 [[Article]](http://example.com) [[Preprint]](https://arxiv.org/abs/2411.03375)
+
+***
 
 <div align="center">
   <img src='figures/header.png' width="90%"/>
 </div>
 
+***
 
 This repository contains the implementation of in-memory kernel approximation for linear regression models and linear-complexity Transformer models. Details and instructions can be found in the corresponding folder.
 
