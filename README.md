@@ -2,7 +2,7 @@
 
 #### Julian Büchel, Giacomo Camposampiero, Athanasios Vasilopoulos, Corey Lammie, Manuel Le Gallo, Abbas Rahimi, and Abu Sebastian
 
-Nature Machine Intelligence, 2024 [[Article]](http://example.com) [[Preprint]](https://arxiv.org/abs/2411.03375)
+Nature Machine Intelligence, 2024 [[Article]](https://www.nature.com/articles/s42256-024-00943-2) [[Preprint]](https://arxiv.org/abs/2411.03375)
 
 ***
 
