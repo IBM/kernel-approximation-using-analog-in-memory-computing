@@ -21,13 +21,18 @@ black imka-lra
 black imka-ridge-regression
 ```
 
-<!-- ## Citation 📚
+## Citation 📚
 If you use the work released here for your research, please consider citing our paper:
 ```
-@article{
-   TODO
+@article{buchel2024kernel,
+  title={Kernel approximation using analogue in-memory computing},
+  author={B{\"u}chel, Julian and Camposampiero, Giacomo and Vasilopoulos, Athanasios and Lammie, Corey and Le Gallo, Manuel and Rahimi, Abbas and Sebastian, Abu},
+  journal={Nature Machine Intelligence},
+  pages={1--11},
+  year={2024},
+  publisher={Nature Publishing Group}
 }
-``` -->
+```
 
 
 ## License 🔏
