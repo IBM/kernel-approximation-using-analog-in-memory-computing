@@ -2,8 +2,8 @@ flatten_dict==0.4.2
 huggingface_hub==0.20.3
 matplotlib==3.7.1
 pip install numpy==1.26.4
-Pillow==10.0.0
+Pillow
 PyYAML==6.0
 rectpack==0.2.2
-setuptools==66.0.0
+setuptools
 tqdm==4.65.0
