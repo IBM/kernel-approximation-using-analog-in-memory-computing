@@ -10,4 +10,4 @@ scipy==1.12.0
 setuptools
 torch
 torchvision
-tqdm==4.64.1
+tqdm==4.66.3
