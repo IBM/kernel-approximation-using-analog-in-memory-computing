@@ -8,6 +8,6 @@ PyYAML==6.0.1
 scikit_learn==1.5.0
 scipy==1.12.0
 setuptools==83.0.0
-torch==1.13.1
-torchvision==0.14.1
+torch
+torchvision
 tqdm==4.64.1
